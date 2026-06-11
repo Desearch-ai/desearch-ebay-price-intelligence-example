@@ -10,7 +10,7 @@ Live demo: https://desearch-ebay-price-app.vercel.app
 - Calls `GET /web?query=site%3Aebay.com+...&start=0` and paginates with `start=10`, `start=20`, etc.
 - Optionally crawls selected result links with `GET /web/crawl`.
 - Extracts price, shipping, total price, condition, seller rating, and crawl status.
-- Ships a simple warm-white UI and a serverless API route for Vercel.
+- Ships a simple premium UI with presets, advanced settings, staged loaders, summary cards, best-deal highlight, and JSON export.
 
 ## API flow
 
