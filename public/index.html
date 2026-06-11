@@ -6,102 +6,151 @@
     <title>Desearch eBay Price Intelligence</title>
     <meta
       name="description"
-      content="Quick prototype: use Desearch web search with site: operators and crawl to collect eBay listings for price comparison."
+      content="A simple Desearch code example that turns web search + crawl into eBay price intelligence."
     />
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
     <main class="shell">
+      <nav class="topbar" aria-label="Demo navigation">
+        <a class="brand" href="/" aria-label="Desearch eBay demo home">
+          <span class="brand-mark">D</span>
+          <span>Desearch examples</span>
+        </a>
+        <div class="nav-pill">GET /web + /web/crawl</div>
+      </nav>
+
       <section class="hero">
-        <div>
-          <p class="eyebrow">Desearch use case prototype</p>
-          <h1>eBay price intelligence from <span>web search + crawl</span></h1>
+        <div class="hero-copy">
+          <p class="eyebrow">Marketplace intelligence demo</p>
+          <h1>Turn eBay searches into a clean price table.</h1>
           <p class="subcopy">
-            This demo intentionally uses the <strong>SERP Web Search endpoint</strong>, not AI Search, because <code>GET /web</code>
-            preserves operators like <code>site:ebay.com</code>. Then it crawls selected listings and extracts price signals.
+            A tiny app that uses Desearch <strong>Web Search</strong> with <code>site:</code>, crawls selected pages,
+            and extracts prices into an easy result view.
           </p>
-          <div class="hero-actions">
-            <a href="#app" class="button primary">Try the flow</a>
-            <a href="https://api.desearch.ai/openapi.json" class="button secondary" target="_blank" rel="noreferrer">OpenAPI</a>
+
+          <div class="flow-strip" aria-label="How this demo works">
+            <div><b>1</b><span>Search with site:ebay.com</span></div>
+            <div><b>2</b><span>Crawl the best links</span></div>
+            <div><b>3</b><span>Extract price signals</span></div>
           </div>
         </div>
-        <div class="preview-card">
-          <div class="terminal-bar"><span></span><span></span><span></span></div>
-          <pre><code>GET /web?query=site%3Aebay.com%20iPhone%2015%20Pro%20Max&amp;start=0
 
-GET /web/crawl?url={listing}&amp;format=text</code></pre>
-        </div>
+        <aside class="hero-preview" aria-label="API preview">
+          <div class="mini-window">
+            <div class="window-dots"><span></span><span></span><span></span></div>
+            <div class="request-line"><span>GET</span> /web</div>
+            <code>query=site:ebay.com iPhone 15 Pro Max</code>
+            <div class="result-peek">
+              <div>
+                <small>Found</small>
+                <strong>20 links</strong>
+              </div>
+              <div>
+                <small>Lowest</small>
+                <strong>$735</strong>
+              </div>
+            </div>
+          </div>
+        </aside>
       </section>
 
       <section id="app" class="app-card">
-        <div class="section-heading">
-          <p class="eyebrow">Live app</p>
-          <h2>Search eBay listings</h2>
-          <p>Paste a Desearch API key for testing if the deployment does not have one configured. The key is sent only to this serverless function for the request.</p>
+        <div class="app-heading">
+          <div>
+            <p class="eyebrow">Try it live</p>
+            <h2>What product should we price-check?</h2>
+          </div>
+          <div class="safe-note">Server key configured. You can also paste your own.</div>
         </div>
 
-        <form id="search-form" class="form-grid">
-          <label class="full">
-            <span>Product / query</span>
-            <input id="query" name="query" required value="iPhone 15 Pro Max 256GB unlocked used under $850" />
-          </label>
-          <label>
-            <span>Site operator</span>
-            <input id="site" name="site" value="ebay.com" />
-          </label>
-          <label>
-            <span>Web results</span>
-            <input id="count" name="count" type="number" min="10" max="200" value="20" />
-          </label>
-          <label>
-            <span>Crawl first N links</span>
-            <input id="crawlLimit" name="crawlLimit" type="number" min="0" max="20" value="5" />
-          </label>
-          <label>
-            <span>Desearch API key</span>
-            <input id="apiKey" name="apiKey" type="password" placeholder="Optional if server env is configured" autocomplete="off" />
-          </label>
-          <label class="check-row">
-            <input id="renderJs" name="renderJs" type="checkbox" />
-            <span>Use JS rendering for crawls</span>
-          </label>
-          <button class="button primary full" type="submit">Run eBay price search</button>
+        <form id="search-form" class="search-form">
+          <div class="search-composer">
+            <label class="query-label">
+              <span>Product or exact search</span>
+              <input id="query" name="query" required value="Apple iPhone 15 Pro Max eBay" />
+            </label>
+            <button id="submit-button" class="button primary" type="submit">
+              <span class="button-icon">↗</span>
+              Run search
+            </button>
+          </div>
+
+          <div class="preset-row" aria-label="Example searches">
+            <button type="button" data-preset="Apple iPhone 15 Pro Max eBay">iPhone prices</button>
+            <button type="button" data-preset="Sony A7 IV camera body eBay">Camera deals</button>
+            <button type="button" data-preset="Nintendo Switch OLED console eBay">Game console</button>
+          </div>
+
+          <details class="advanced-settings">
+            <summary>Advanced settings</summary>
+            <div class="form-grid">
+              <label>
+                <span>Site operator</span>
+                <input id="site" name="site" value="ebay.com" />
+              </label>
+              <label>
+                <span>Results to inspect</span>
+                <input id="count" name="count" type="number" min="10" max="200" value="20" />
+              </label>
+              <label>
+                <span>Crawl first N links</span>
+                <input id="crawlLimit" name="crawlLimit" type="number" min="0" max="20" value="5" />
+              </label>
+              <label>
+                <span>Desearch API key</span>
+                <input id="apiKey" name="apiKey" type="password" placeholder="Optional override" autocomplete="off" />
+              </label>
+              <label class="check-row">
+                <input id="renderJs" name="renderJs" type="checkbox" />
+                <span>Render pages with JS while crawling</span>
+              </label>
+            </div>
+          </details>
         </form>
 
-        <div id="status" class="status" aria-live="polite">Ready.</div>
+        <div id="status" class="status" aria-live="polite">Ready. Pick a preset or run the default example.</div>
+      </section>
+
+      <section id="loader" class="loader-card hidden" aria-live="polite" aria-label="Search progress">
+        <div class="loader-visual">
+          <div class="pulse-ring"></div>
+          <div class="loader-core">D</div>
+        </div>
+        <div class="loader-copy">
+          <p class="eyebrow">Running pipeline</p>
+          <h2 id="loader-title">Searching eBay with Web Search</h2>
+          <p id="loader-detail">Keeping the query as a real SERP query so <code>site:ebay.com</code> stays intact.</p>
+          <div class="progress-track"><span id="loader-bar"></span></div>
+          <div id="loader-stages" class="stage-grid">
+            <div class="stage active" data-stage="0"><b>01</b><span>GET /web</span></div>
+            <div class="stage" data-stage="1"><b>02</b><span>Dedupe links</span></div>
+            <div class="stage" data-stage="2"><b>03</b><span>Crawl pages</span></div>
+            <div class="stage" data-stage="3"><b>04</b><span>Extract prices</span></div>
+          </div>
+        </div>
       </section>
 
       <section id="results" class="results hidden">
-        <div class="section-heading row-heading">
+        <div class="results-header">
           <div>
-            <p class="eyebrow">Results</p>
-            <h2>Price summary</h2>
+            <p class="eyebrow">Live results</p>
+            <h2 id="result-title">Price intelligence summary</h2>
           </div>
           <button id="download" class="button secondary" type="button">Download JSON</button>
         </div>
+
         <div id="summary" class="summary-grid"></div>
+
         <div class="prompt-box">
-          <span>Web-search prompt</span>
+          <span>Search actually sent to Desearch</span>
           <code id="prompt"></code>
         </div>
-        <div class="table-wrap">
-          <table>
-            <thead>
-              <tr>
-                <th>Listing</th>
-                <th>Price</th>
-                <th>Shipping</th>
-                <th>Total</th>
-                <th>Condition</th>
-                <th>Seller</th>
-                <th>Crawled</th>
-              </tr>
-            </thead>
-            <tbody id="listing-body"></tbody>
-          </table>
-        </div>
+
+        <div id="listing-grid" class="listing-grid"></div>
       </section>
     </main>
+
     <script type="module" src="/app.js"></script>
   </body>
 </html>
