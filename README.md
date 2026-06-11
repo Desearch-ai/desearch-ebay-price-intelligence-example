@@ -6,8 +6,8 @@ Live demo: https://desearch-ebay-price-app.vercel.app
 
 ## What this example shows
 
-- Uses **Desearch Web Search** instead of AI Search so search operators like `site:ebay.com` are preserved.
-- Calls `POST /desearch/ai/search/links/web` with `tools: ["web"]`.
+- Uses the **SERP Web Search** endpoint instead of AI Search so search operators like `site:ebay.com` are preserved.
+- Calls `GET /web?query=site%3Aebay.com+...&start=0` and paginates with `start=10`, `start=20`, etc.
 - Optionally crawls selected result links with `GET /web/crawl`.
 - Extracts price, shipping, total price, condition, seller rating, and crawl status.
 - Ships a simple warm-white UI and a serverless API route for Vercel.
@@ -17,18 +17,11 @@ Live demo: https://desearch-ebay-price-app.vercel.app
 ### 1. Discover public eBay URLs
 
 ```http
-POST https://api.desearch.ai/desearch/ai/search/links/web
+GET https://api.desearch.ai/web?query=site%3Aebay.com%20iPhone%2015%20Pro%20Max%20256GB%20unlocked%20used%20under%20%24850&start=0
 Authorization: $DESEARCH_API_KEY
-Content-Type: application/json
 ```
 
-```json
-{
-  "prompt": "site:ebay.com iPhone 15 Pro Max 256GB unlocked used under $850",
-  "tools": ["web"],
-  "count": 20
-}
-```
+For the next page, call the same endpoint with `start=10`; for page 3 use `start=20`.
 
 ### 2. Crawl selected listing/result pages
 

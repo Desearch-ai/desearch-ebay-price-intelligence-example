@@ -31,21 +31,46 @@ describe('Desearch eBay app core helpers', () => {
     assert.equal(clampCount(500), 200);
   });
 
-  it('flattens Desearch web search response groups', () => {
+  it('flattens SERP /web response data', () => {
     const response = {
-      search_results: [
+      data: [
         { title: 'A', snippet: 'one', link: 'https://www.ebay.com/itm/1' },
-      ],
-      reddit_search_results: null,
-      youtube_search_results: [
-        { title: 'Video', snippet: 'ignore but valid', link: 'https://youtube.com/watch?v=1' },
+        { title: 'B', snippet: 'two', link: 'https://www.ebay.com/itm/2' },
       ],
     };
 
     assert.deepEqual(flattenWebSearchResults(response).map((r) => r.link), [
       'https://www.ebay.com/itm/1',
-      'https://youtube.com/watch?v=1',
+      'https://www.ebay.com/itm/2',
     ]);
+    assert.equal(flattenWebSearchResults(response)[0].source, 'web');
+  });
+
+  it('calls the SERP web search endpoint, not the AI search endpoint', async () => {
+    const calls = [];
+    const fakeFetch = async (url, options) => {
+      calls.push({ url: String(url), options });
+      return new Response(JSON.stringify({ data: [] }), {
+        status: 201,
+        headers: { 'content-type': 'application/json' },
+      });
+    };
+
+    const { callDesearchWebSearch } = await import('../src/lib.mjs');
+    const result = await callDesearchWebSearch({
+      query: 'iPhone 15',
+      site: 'ebay.com',
+      count: 20,
+      apiKey: 'test-key',
+      fetchImpl: fakeFetch,
+    });
+
+    const calledUrl = new URL(calls[0].url);
+    assert.equal(calls[0].options.method, 'GET');
+    assert.equal(calledUrl.pathname, '/web');
+    assert.equal(calledUrl.searchParams.get('query'), 'site:ebay.com iPhone 15');
+    assert.equal(calledUrl.searchParams.get('start'), '0');
+    assert.equal(result.prompt, 'site:ebay.com iPhone 15');
   });
 
   it('dedupes repeated links and keeps first source metadata', () => {

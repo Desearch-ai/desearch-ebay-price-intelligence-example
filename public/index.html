@@ -17,8 +17,8 @@
           <p class="eyebrow">Desearch use case prototype</p>
           <h1>eBay price intelligence from <span>web search + crawl</span></h1>
           <p class="subcopy">
-            This demo intentionally uses <strong>Web Search</strong>, not AI Search, because the web-search endpoint preserves
-            operators like <code>site:ebay.com</code>. Then it crawls selected listings and extracts price signals.
+            This demo intentionally uses the <strong>SERP Web Search endpoint</strong>, not AI Search, because <code>GET /web</code>
+            preserves operators like <code>site:ebay.com</code>. Then it crawls selected listings and extracts price signals.
           </p>
           <div class="hero-actions">
             <a href="#app" class="button primary">Try the flow</a>
@@ -27,14 +27,9 @@
         </div>
         <div class="preview-card">
           <div class="terminal-bar"><span></span><span></span><span></span></div>
-          <pre><code>POST /desearch/ai/search/links/web
-{
-  "prompt": "site:ebay.com iPhone 15 Pro Max unlocked",
-  "tools": ["web"],
-  "count": 20
-}
+          <pre><code>GET /web?query=site%3Aebay.com%20iPhone%2015%20Pro%20Max&amp;start=0
 
-GET /web/crawl?url={listing}&format=text</code></pre>
+GET /web/crawl?url={listing}&amp;format=text</code></pre>
         </div>
       </section>
 

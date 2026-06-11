@@ -21,6 +21,18 @@ export function clampCount(value) {
 }
 
 export function flattenWebSearchResults(response = {}) {
+  if (Array.isArray(response.data)) {
+    return response.data
+      .filter((item) => item && item.link)
+      .map((item) => ({
+        title: item.title || 'Untitled result',
+        snippet: item.snippet || '',
+        link: item.link,
+        source: 'web',
+      }));
+  }
+
+  // Backward-compatible fallback for the older links/web grouped response shape.
   const groups = [
     'search_results',
     'youtube_search_results',
@@ -194,28 +206,42 @@ async function readResponseBody(response) {
 
 export async function callDesearchWebSearch({ query, site, count, apiKey, fetchImpl = fetch }) {
   const prompt = buildWebSearchPrompt(query, site);
-  const response = await fetchImpl(`${DESEARCH_BASE_URL}/desearch/ai/search/links/web`, {
-    method: 'POST',
-    headers: {
-      Authorization: apiKey,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ prompt, tools: ['web'], count: clampCount(count) }),
-  });
+  const targetCount = clampCount(count);
+  const pages = Math.max(1, Math.ceil(targetCount / 10));
+  const data = [];
+  const billings = [];
 
-  const body = await readResponseBody(response);
-  if (!response.ok) {
-    const message = typeof body === 'string' ? body : body?.detail || body?.message || JSON.stringify(body);
-    const error = new Error(`Desearch web search failed: ${response.status} ${message}`);
-    error.status = response.status;
-    error.body = body;
-    throw error;
+  for (let page = 0; page < pages; page += 1) {
+    const start = page * 10;
+    const endpoint = new URL(`${DESEARCH_BASE_URL}/web`);
+    endpoint.searchParams.set('query', prompt);
+    endpoint.searchParams.set('start', String(start));
+
+    const response = await fetchImpl(endpoint, {
+      method: 'GET',
+      headers: { Authorization: apiKey },
+    });
+
+    const body = await readResponseBody(response);
+    if (!response.ok) {
+      const message = typeof body === 'string' ? body : body?.detail || body?.message || JSON.stringify(body);
+      const error = new Error(`Desearch web search failed: ${response.status} ${message}`);
+      error.status = response.status;
+      error.body = body;
+      throw error;
+    }
+
+    billings.push({ start, billing: getBillingHeaders(response) });
+    const pageResults = Array.isArray(body?.data) ? body.data : [];
+    data.push(...pageResults);
+    if (pageResults.length < 10 || data.length >= targetCount) break;
   }
 
   return {
-    body,
+    body: { data: data.slice(0, targetCount) },
     prompt,
-    billing: getBillingHeaders(response),
+    billing: billings[0]?.billing || {},
+    billings,
   };
 }
 
